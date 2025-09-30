@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Canvas, extend, useFrame, useThree } from '@react-three/fiber';
@@ -6,24 +5,6 @@ import { useAspect, useTexture } from '@react-three/drei';
 import { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three/webgpu';
 import { bloom } from 'three/examples/jsm/tsl/display/BloomNode.js';
-
-// Component to initialize WebGPU renderer
-const RendererInitializer = ({ onReady }: { onReady: () => void }) => {
-  const { gl } = useThree();
-  
-  useEffect(() => {
-    const initRenderer = async () => {
-      const anyGl = gl as any;
-      if (anyGl && typeof anyGl.init === 'function') {
-        await anyGl.init();
-        onReady();
-      }
-    };
-    initRenderer();
-  }, [gl, onReady]);
-  
-  return null;
-};
 
 import {
   abs,
@@ -43,8 +24,8 @@ import {
   add
 } from 'three/tsl';
 
-const TEXTUREMAP = { src: '/assets/texture.jpg' };
-const DEPTHMAP = { src: '/assets/texture.jpg' };
+const TEXTUREMAP = { src: 'https://i.postimg.cc/XYwvXN8D/img-4.png' };
+const DEPTHMAP = { src: 'https://i.postimg.cc/2SHKQh2q/raw-4.webp' };
 
 extend(THREE as any);
 
@@ -178,7 +159,6 @@ export const Demo = () => {
   const [subtitleVisible, setSubtitleVisible] = useState(false);
   const [delays, setDelays] = useState<number[]>([]);
   const [subtitleDelay, setSubtitleDelay] = useState(0);
-  const [rendererReady, setRendererReady] = useState(false);
 
   useEffect(() => {
     // Client-side only: generate random delays for glitch effect
@@ -241,16 +221,15 @@ export const Demo = () => {
 
       <Canvas
         flat
-        gl={(canvas: HTMLCanvasElement) => new (THREE as any).WebGPURenderer({ canvas }) as any}
+        gl={(canvas) => {
+          const renderer = new THREE.WebGPURenderer({ canvas } as any);
+          renderer.init();
+          return renderer as any;
+        }}
         className="absolute inset-0"
       >
-        <RendererInitializer onReady={() => setRendererReady(true)} />
-        {rendererReady && (
-          <>
-            <PostProcessing fullScreenEffect={true} />
-            <Scene />
-          </>
-        )}
+        <PostProcessing fullScreenEffect={true} />
+        <Scene />
       </Canvas>
     </div>
   );
